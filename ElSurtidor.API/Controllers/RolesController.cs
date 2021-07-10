@@ -58,8 +58,6 @@ namespace ElSurtidor.API.Controllers
         }
 
 
-
-
         [HttpGet("[Action]")]
         public IActionResult Activas()
         {

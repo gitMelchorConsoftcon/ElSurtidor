@@ -29,7 +29,17 @@ namespace ElSurtidor.API.Controllers
             try
             {
 
-                var usuarios = DB.Usuario.ToList();
+                var usuarios = (from u in DB.Usuario
+                                join r in DB.Rol on u.IdRol equals r.Id
+                                select new
+                                {
+                                    u.Nombre,
+                                    u.Telefono,
+                                    u.Email,
+                                    u.Direccion,
+                                    u.IdRol,
+                                    RolUsuario = r.Nombre
+                                }).ToList();
 
                 if (usuarios.Count == 0)
                     throw new TException("No tenemos categorias para enviar");
@@ -86,6 +96,164 @@ namespace ElSurtidor.API.Controllers
             }
 
         }
+
+
+        [HttpGet("[Action]/{id}")]
+        public IActionResult Buscar(int id)
+        {
+            try
+            {
+                var usuarios = (from u in DB.Usuario
+                                join r in DB.Rol on u.IdRol equals r.Id
+                                where u.Id==id
+                                select new
+                                {
+                                    u.Nombre,
+                                    u.Telefono,
+                                    u.Email,
+                                    u.Direccion,
+                                    u.IdRol,
+                                    RolUsuario = r.Nombre
+                                }).ToList();
+
+                if (usuarios.Count == 0)
+                    throw new TException("No tenemos categorias para enviar");
+
+                respuesta.Data = usuarios;
+                return Ok(respuesta);
+
+            }
+            catch (TException ex)
+            {
+
+                respuesta.Estado = false;
+                respuesta.Mensaje = ex.Message;
+                return BadRequest(respuesta);
+            }
+            catch (Exception)
+            {
+                respuesta.Estado = false;
+                respuesta.Mensaje = "Error de sistema..";
+                return BadRequest(respuesta);
+            }
+        }
+
+
+        [HttpGet("[Action]/{nombre}")]
+        public IActionResult BuscarNombre(string nombre)
+        {
+            try
+            {
+                var usuarios = (from u in DB.Usuario
+                                join r in DB.Rol on u.IdRol equals r.Id
+                                where u.Nombre.Contains(nombre)
+                                select new
+                                {
+                                    u.Nombre,
+                                    u.Telefono,
+                                    u.Email,
+                                    u.Direccion,
+                                    u.IdRol,
+                                    RolUsuario = r.Nombre
+                                }).ToList();
+
+                if (usuarios.Count == 0)
+                    throw new TException("No tenemos categorias para enviar");
+
+                respuesta.Data = usuarios;
+                return Ok(respuesta);
+
+            }
+            catch (TException ex)
+            {
+
+                respuesta.Estado = false;
+                respuesta.Mensaje = ex.Message;
+                return BadRequest(respuesta);
+            }
+            catch (Exception)
+            {
+                respuesta.Estado = false;
+                respuesta.Mensaje = "Error de sistema..";
+                return BadRequest(respuesta);
+            }
+        }
+
+
+
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] UsuarioDTO obj)
+        {
+
+            try
+            {
+                var modificar = DB.Usuario.Find(id);
+
+                if (obj == null)
+                    throw new TException("Categoria no encontrada");
+
+                modificar.Nombre = obj.Nombre;
+
+
+                DB.Update(modificar);
+                DB.SaveChanges();
+
+
+                respuesta.Data = modificar;
+
+                return Ok(respuesta);
+            }
+            catch (TException ex)
+            {
+                respuesta.Estado = false;
+                respuesta.Mensaje = ex.Message;
+                return BadRequest(respuesta);
+            }
+            catch (Exception)
+            {
+                respuesta.Estado = false;
+                respuesta.Mensaje = "Error de distema...";
+                return BadRequest(respuesta);
+            }
+
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+
+
+            try
+            {
+                var borrar = DB.Usuario.Find(id);
+                if (borrar == null)
+                    throw new TException("Categoria no encontrada");
+
+
+                borrar.Activo = false;
+                //DB.Remove(borrar);
+                DB.Update(borrar);
+                DB.SaveChanges();
+                return Ok(borrar);
+            }
+            catch (TException ex)
+            {
+                respuesta.Estado = false;
+                respuesta.Mensaje = ex.Message;
+                return BadRequest(respuesta);
+            }
+            catch (Exception)
+            {
+                respuesta.Estado = false;
+                respuesta.Mensaje = "Error de sistema";
+                return BadRequest(respuesta);
+            }
+
+
+        }
+
+
+
 
 
     }
